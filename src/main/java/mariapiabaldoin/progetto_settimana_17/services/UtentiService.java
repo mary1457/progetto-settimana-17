@@ -30,4 +30,8 @@ public class UtentiService {
         return utentiRepository.findAll();
     }
 
+    public Utente filterByEmail(String email) {
+        return utentiRepository.findByEmail(email);
+    }
+
 }

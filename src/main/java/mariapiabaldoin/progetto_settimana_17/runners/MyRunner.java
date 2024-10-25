@@ -17,6 +17,8 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Scanner;
+import java.util.UUID;
 
 @Component
 @Slf4j
@@ -36,7 +38,7 @@ public class MyRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-/*        Utente mario = new Utente("mario_bros", "Mario", "mario@nintendo.com");
+        /*Utente mario = new Utente("mario_bros", "Mario", "mario@nintendo.com");
         Utente luigi = new Utente("luigi_bros", "Luigi", "luigi@nintendo.com");
         Utente peach = new Utente("princess_peach", "Peach", "peach@nintendo.com");
 
@@ -48,9 +50,9 @@ public class MyRunner implements CommandLineRunner {
         Postazione postazione3 = new Postazione("Area Co-working", Tipo.OPEN_SPACE, 10, edificio2);
 
         Prenotazione prenotazione1 = new Prenotazione(LocalDate.of(2024, 11, 1), mario, postazione1);
-        Prenotazione prenotazione2 = new Prenotazione(LocalDate.of(2024, 11, 2), luigi, postazione2);*/
+        Prenotazione prenotazione2 = new Prenotazione(LocalDate.of(2024, 11, 2), luigi, postazione2);
         try {
-           /* utentiService.saveUtente(mario);
+            utentiService.saveUtente(mario);
             utentiService.saveUtente(luigi);
             utentiService.saveUtente(peach);
             edificiService.saveEdificio(edificio1);
@@ -60,7 +62,6 @@ public class MyRunner implements CommandLineRunner {
             postazioniService.savePostazione(postazione3);
             prenotazioniService.savePrenotazione(prenotazione1);
             prenotazioniService.savePrenotazione(prenotazione2);
-*/
             List<Utente> utenti = utentiService.findAll();
             List<Postazione> postazioni = postazioniService.filterTipoCitta("PRIVATO", "Mushroom Kingdom");
             System.out.println(postazioni.stream().toList());
@@ -80,7 +81,49 @@ public class MyRunner implements CommandLineRunner {
 
         } catch (Exception ex) {
             log.error(ex.getMessage());
+        }*/
+
+        
+        try {
+            Scanner scanner = new Scanner(System.in);
+            System.out.println("Inserisci EMAIL utente");
+            String email = scanner.next();
+            Utente utente = utentiService.filterByEmail(email);
+            System.out.println("Inserisci TIPO postazione");
+            String tipo = scanner.next().toUpperCase();
+            System.out.println("Inserisci CITTA");
+            scanner.nextLine();
+            String citta = scanner.nextLine();
+            List<Postazione> postazioni = postazioniService.filterTipoCitta(tipo, citta);
+            System.out.println(postazioni.stream().toList());
+            System.out.println("Scegli un ID dalle postazioni");
+            String idPostazioni = scanner.next();
+            System.out.println("Inserisci anno");
+            int anno = scanner.nextInt();
+            System.out.println("Inserisci mese");
+            int mese = scanner.nextInt();
+            System.out.println("Inserisci giorno");
+            int giorno = scanner.nextInt();
+            LocalDate data = LocalDate.of(anno, mese, giorno);
+            Postazione postazione = postazioniService.findById(UUID.fromString(idPostazioni));
+            if (prenotazioniService.controlloPostazione(data, postazione)) {
+                if (prenotazioniService.controlloUtente(data, utente)) {
+                    Prenotazione nuovaPrenotazione = new Prenotazione(data, utente, postazione);
+                    prenotazioniService.savePrenotazione(nuovaPrenotazione);
+                } else {
+
+                    throw new ValidationException("L'utente ha già una prenotazione per questa data");
+                }
+
+            } else {
+                throw new NotFoundException(postazione.getPostazioneId());
+            }
+
+        } catch (Exception ex) {
+            log.error(ex.getMessage());
         }
 
     }
+
 }
+
